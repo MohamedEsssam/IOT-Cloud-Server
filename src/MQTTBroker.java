@@ -22,7 +22,14 @@ public class MQTTBroker {
     }
 
     public void brokerAlwaysOn () throws IOException {
+        byte[] buffer = "hello".getBytes();
+        InetAddress address = InetAddress.getByName("192.168.1.255");
+
+        DatagramPacket packet2 = new DatagramPacket(
+                buffer, buffer.length, address, 4444);
         DatagramSocket socket = new DatagramSocket(4444,InetAddress.getByName("0.0.0.0"));
+        DatagramSocket socket2 = new DatagramSocket();
+        socket2.send(packet2);
         socket.setBroadcast(true);
         System.out.println("Listen on " + socket.getLocalAddress() + " from " + socket.getInetAddress() + " port " + socket.getBroadcast());
         byte[] buf = new byte[512];
