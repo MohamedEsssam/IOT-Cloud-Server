@@ -5,7 +5,7 @@ import com.sun.net.httpserver.HttpServer;
 import java.io.*;
 import java.net.*;
 import java.util.HashMap;
-
+import java.util.ArrayList;
 
 public class MQTTBroker {
 
@@ -14,52 +14,49 @@ public class MQTTBroker {
 
     private static final MQTTBroker mqttBrokerInstance = new MQTTBroker();
     private static HashMap<String, MQTTTopic> topics = new HashMap<>();
+    private ServerSocket serverWelcomingSocket;
 
-    private MQTTBroker(){}
+    private MQTTBroker() {}
 
-    public static MQTTBroker getInstance(){
-        return  mqttBrokerInstance;
+    public static MQTTBroker getInstance() {
+        return mqttBrokerInstance;
     }
 
-    public void brokerAlwaysOn () throws IOException {
-        byte[] buffer = "hello".getBytes();
-        InetAddress address = InetAddress.getByName("192.168.1.255");
 
-        DatagramPacket packet2 = new DatagramPacket(
-                buffer, buffer.length, address, 4444);
-        DatagramSocket socket = new DatagramSocket(4444,InetAddress.getByName("0.0.0.0"));
-        DatagramSocket socket2 = new DatagramSocket();
-        socket2.send(packet2);
-        socket.setBroadcast(true);
-        System.out.println("Listen on " + socket.getLocalAddress() + " from " + socket.getInetAddress() + " port " + socket.getBroadcast());
-        byte[] buf = new byte[512];
-        DatagramPacket packet = new DatagramPacket(buf, buf.length);
-        HttpServer server = HttpServer.create(new InetSocketAddress(4444), 0);
-        HttpContext context = server.createContext("/");
-        context.setHandler(MQTTBroker::handleRequest);
-        server.start();
+    public void brokerAlwaysOn() throws Exception {// server is listening on port 5056
+        serverWelcomingSocket = new ServerSocket(5678);
 
-       while(true) {
+        // running infinite loop for getting
+        // client request
+        while (true)
+        {
+                // socket object to receive incoming client requests
+                Socket acceptedSocket = serverWelcomingSocket.accept();
 
-           //get the message from the socket
-           //know the topic specified in the message and get its MQTTTopic from the hash map topics
+                System.out.println("A new client is connected : " + acceptedSocket);
 
-           System.out.println("Waiting for data");
-           socket.receive(packet);
-           System.out.println(packet.getAddress());
-           System.out.println(packet.getPort());
-           System.out.println("Data received");
-       }
+                // obtaining input and out streams
+                DataInputStream dataInputStream = new DataInputStream(acceptedSocket.getInputStream());
+                DataOutputStream dataOutputStream = new DataOutputStream(acceptedSocket.getOutputStream());
+
+                System.out.println("Assigning new thread for this client");
+
+                // create a new thread object
+                Thread t = new ClientHandler(acceptedSocket, dataInputStream, dataOutputStream);
+
+                // Invoking the start() method
+                t.start();
+        }
     }
 
-    private MQTTTopic getTopic(String topicName){
+    private MQTTTopic getTopic(String topicName) {
         return topics.get(topicName);
     }
 
     //create topic method
-    private void createTopic(String topicName){
+    private void createTopic(String topicName) {
         MQTTTopic newTopic = new MQTTTopic();
-        topics.put(topicName,newTopic);
+        topics.put(topicName, newTopic);
     }
 
     //callback function
@@ -72,7 +69,7 @@ public class MQTTBroker {
         os.close();
     }
 
-    public static String getBody(HttpExchange request) throws IOException {
+    private static String getBody(HttpExchange request) throws IOException {
 
         String body = null;
         StringBuilder stringBuilder = new StringBuilder();
@@ -104,5 +101,45 @@ public class MQTTBroker {
 
         body = stringBuilder.toString();
         return body;
+    }
+
+
+    private void SendUDPPacket(String IP, int port, String message) throws UnknownHostException, SocketException {
+        byte[] buffer = message.getBytes();
+        InetAddress address = InetAddress.getByName(IP);
+        DatagramPacket packet2 = new DatagramPacket(buffer, buffer.length, address, port);
+        DatagramSocket socket2 = new DatagramSocket();
+        try {
+            socket2.send(packet2);
+        } catch (IOException e) {
+            System.out.println("Failed To Send Message");
+        }
+    }
+
+    private void listen() throws Exception {
+        String data = null;
+        Socket client = this.serverWelcomingSocket.accept();
+        String clientAddress = client.getInetAddress().getHostAddress();
+        System.out.println("\r\nNew connection from " + clientAddress + " " + client.getPort());
+        BufferedReader in = new BufferedReader(
+                new InputStreamReader(client.getInputStream()));
+        while ((data = in.readLine()) != null) {
+            System.out.println("\r\nMessage from " + clientAddress + ": " + data);
+        }
+    }
+
+    private void ReceiveUDP(DatagramSocket socket)
+    {
+        byte[] buf = new byte[512];
+        DatagramPacket packet = new DatagramPacket(buf, buf.length);
+        System.out.println("Waiting for data");
+        try {
+            socket.receive(packet);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println(packet.getAddress());
+        System.out.println(packet.getPort());
+        System.out.println("Data received");
     }
 }
