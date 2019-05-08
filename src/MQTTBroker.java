@@ -1,11 +1,8 @@
-import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpServer;
 
 import java.io.*;
 import java.net.*;
 import java.util.HashMap;
-import java.util.ArrayList;
 
 public class MQTTBroker {
 
@@ -14,35 +11,41 @@ public class MQTTBroker {
 
     private static final MQTTBroker mqttBrokerInstance = new MQTTBroker();
     private static HashMap<String, MQTTTopic> topics = new HashMap<>();
-    ServerSocket MyServer;
+    private ServerSocket serverWelcomingSocket;
 
-    {
-        try {
-            MyServer = new ServerSocket(4444);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    private MQTTBroker() {
-    }
+    private MQTTBroker() {}
 
     public static MQTTBroker getInstance() {
         return mqttBrokerInstance;
     }
 
+
     public void brokerAlwaysOn() throws Exception {
-        DatagramSocket socket = new DatagramSocket(5555, InetAddress.getByName("0.0.0.0"));
-        socket.setBroadcast(true);
-        System.out.println("Listen on " + socket.getLocalAddress() + " from " + socket.getInetAddress() + " port " + socket.getBroadcast());
-        HttpServer server = HttpServer.create(new InetSocketAddress(6666), 0);
-        HttpContext context = server.createContext("/");
-        context.setHandler(MQTTBroker::handleRequest);
-        server.start();
 
-        while (true) {
+        // server welcoming socket listening on port 5678 with ip address of the machine
+        serverWelcomingSocket = new ServerSocket(5678);
 
+        //TODO: make the nodeMCU send TCP packet and the server receive it throw the serverWelcomingSocket.
+
+        // running infinite loop for getting client request
+        while (true)
+        {
+                // socket object to receive incoming client requests
+                Socket acceptedSocket = serverWelcomingSocket.accept();
+
+                System.out.println("A new client is connected : " + acceptedSocket);
+
+                // obtaining input and out streams
+                DataInputStream dataInputStream = new DataInputStream(acceptedSocket.getInputStream());
+                DataOutputStream dataOutputStream = new DataOutputStream(acceptedSocket.getOutputStream());
+
+                System.out.println("Assigning new thread for this client");
+
+                // create a new thread object
+                Thread t = new DeviceRequestHandler(acceptedSocket, dataInputStream, dataOutputStream);
+
+                // Invoking the start() method
+                t.start();
         }
     }
 
@@ -115,7 +118,7 @@ public class MQTTBroker {
 
     private void listen() throws Exception {
         String data = null;
-        Socket client = this.MyServer.accept();
+        Socket client = this.serverWelcomingSocket.accept();
         String clientAddress = client.getInetAddress().getHostAddress();
         System.out.println("\r\nNew connection from " + clientAddress + " " + client.getPort());
         BufferedReader in = new BufferedReader(

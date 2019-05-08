@@ -5,6 +5,10 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         MQTTBroker mqttBroker  = MQTTBroker.getInstance();
-        mqttBroker.brokerAlwaysOn();
+        try {
+            mqttBroker.brokerAlwaysOn();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
