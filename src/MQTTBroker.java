@@ -1,11 +1,8 @@
-import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpServer;
 
 import java.io.*;
 import java.net.*;
 import java.util.HashMap;
-import java.util.ArrayList;
 
 public class MQTTBroker {
 
@@ -23,11 +20,14 @@ public class MQTTBroker {
     }
 
 
-    public void brokerAlwaysOn() throws Exception {// server is listening on port 5056
+    public void brokerAlwaysOn() throws Exception {
+
+        // server welcoming socket listening on port 5678 with ip address of the machine
         serverWelcomingSocket = new ServerSocket(5678);
 
-        // running infinite loop for getting
-        // client request
+        //TODO: make the nodeMCU send TCP packet and the server receive it throw the serverWelcomingSocket.
+
+        // running infinite loop for getting client request
         while (true)
         {
                 // socket object to receive incoming client requests
@@ -42,7 +42,7 @@ public class MQTTBroker {
                 System.out.println("Assigning new thread for this client");
 
                 // create a new thread object
-                Thread t = new ClientHandler(acceptedSocket, dataInputStream, dataOutputStream);
+                Thread t = new DeviceRequestHandler(acceptedSocket, dataInputStream, dataOutputStream);
 
                 // Invoking the start() method
                 t.start();

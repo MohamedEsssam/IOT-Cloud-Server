@@ -9,6 +9,7 @@ public class MQTTSubscriber {
 
     public void update() {
 
-        //send message to the device throw the socket of the server and the device socket
+        // the update message will be "Publish topicName TopicCurrentState"
+        // the message will be send throw the dataOutputStream of the device
     }
 }
