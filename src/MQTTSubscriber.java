@@ -1,15 +1,21 @@
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 public class MQTTSubscriber {
 
     private MQTTTopic mqttTopic;
-
-    public MQTTSubscriber(MQTTTopic topic) {
+    private DataOutputStream dataOutputStream;
+    public String DeviceName;
+    public MQTTSubscriber(MQTTTopic topic, DataOutputStream dataOutputStream,String DeviceName) throws IOException {
         this.mqttTopic = topic;
+        this.dataOutputStream = dataOutputStream;
+        this.DeviceName = DeviceName;
         this.mqttTopic.attach(this);
+
     }
 
-    public void update() {
-
-        // the update message will be "Publish topicName TopicCurrentState"
-        // the message will be send throw the dataOutputStream of the device
+    public void update() throws IOException {
+        System.out.println("Sending Data");
+        dataOutputStream.writeUTF("publish " + DeviceName + " " + mqttTopic.getState());
     }
 }

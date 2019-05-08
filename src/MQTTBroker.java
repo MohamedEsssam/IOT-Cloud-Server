@@ -19,13 +19,14 @@ public class MQTTBroker {
         return mqttBrokerInstance;
     }
 
+    public static HashMap<String, MQTTTopic> getTopics() {
+        return topics;
+    }
 
     public void brokerAlwaysOn() throws Exception {
 
         // server welcoming socket listening on port 5678 with ip address of the machine
         serverWelcomingSocket = new ServerSocket(5678);
-
-        //TODO: make the nodeMCU send TCP packet and the server receive it throw the serverWelcomingSocket.
 
         // running infinite loop for getting client request
         while (true)
