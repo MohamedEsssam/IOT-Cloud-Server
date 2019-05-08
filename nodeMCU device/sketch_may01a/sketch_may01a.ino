@@ -4,6 +4,8 @@
 #include <string.h>
 
 #define MAX_STRING_LEN  20
+#define UDP         5555
+#define TCP         5678
 
 
 const char *ssid =  "MohamedEssam";     // replace with your wifi ssid and wpa2 key
@@ -12,17 +14,25 @@ WiFiUDP Udp;
 unsigned int localUdpPort = 6666;
 char incomingPacket[256];
 char replyPacket[] = "Hi there! Got the message :-)";
-int portTCP = 4444;
-int portUDP = 5555;
+int portTCP = TCP;
+int portUDP = UDP;
+int i =0;
 WiFiClient client;
-IPAddress remoteIP(192,168,1,34);
+IPAddress remoteIP(192,168,1,8);
+
+
+int ledpin = 5; // D1
+int button = 4; //D2
 
  
 void setup() 
 {
        Serial.begin(9600);
        delay(10);
-               
+
+//       pinMode(ledpin, OUTPUT);
+//       pinMode(button, INPUT);
+        
        Serial.println("Connecting to ");
        Serial.println(ssid);
 
@@ -44,8 +54,22 @@ void setup()
  
 void loop() 
 {      
+    
+//   if (digitalRead(button) == 1)
+//  {
+//  digitalWrite(ledpin, HIGH); 
+//  delay(200);
+//  }
+//  if (digitalRead(button)==0)
+//  {
+//  digitalWrite(ledpin, LOW); 
+//  delay(200);
+//  }
+
+
+  
     Udp.beginPacket(remoteIP, portUDP);
-    Udp.write("Hello from 3as3oos client");
+    Udp.write("Hello from 3as3oos client UDP");
     Udp.endPacket();
     
   int packetSize = Udp.parsePacket();
@@ -60,6 +84,10 @@ void loop()
     }
     Serial.printf("UDP packet contents: %s\n", incomingPacket);
     //Serial.println(subStr(incomingPacket, " ", 3));
+
+    Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
+    Udp.write(replyPacket);
+    Udp.endPacket();
   
   //TCP connection
     if (!client.connect(remoteIP, portTCP)) {
@@ -69,8 +97,10 @@ void loop()
   }
   // This will send a string to the server
   Serial.println("sending data to server");
-  if (client.connected()) {
-    client.println("hello from ESP8266");
+  if (client.available()) {
+    Serial.println("start TCP connection");
+    client.write("Hello Server");
+    Serial.write("Hello Server");
   }
 
   // wait for data to be available
@@ -86,15 +116,15 @@ void loop()
 
   // Read all the lines of the reply from server and print them to Serial
   Serial.println("receiving from remote server");
-  while (client.available()) {
-    char ch = static_cast<char>(client.read());
-    Serial.print(ch);
-  }
+  while (client.available()){
+    char receivedMessage = static_cast<char>(client.read());
+    Serial.print(receivedMessage);
+    }
 
-  // Close the connection
-  Serial.println();
-  Serial.println("closing connection");
-  client.stop();    
+// Close the connection
+//  Serial.println();
+//  Serial.println("closing connection");
+//  client.stop();    
   }
 }
 
