@@ -9,7 +9,6 @@ public class DeviceRequestHandler extends Thread {
     private final DataInputStream dataInputStream;
     private final DataOutputStream dataOutputStream;
     private final Socket deviceSocket;
-    char flag = 0;
     private String[] requestContent;
     HashMap<String,MQTTTopic> topics = MQTTBroker.getTopics();
     public DeviceRequestHandler(Socket deviceSocket, DataInputStream dataInputStream, DataOutputStream dataOutputStream) throws IOException {
@@ -104,7 +103,8 @@ public class DeviceRequestHandler extends Thread {
             MQTTTopic topic = new MQTTTopic();
             topics.put(requestContent[2],topic);
         }
-        new MQTTSubscriber(topics.get(requestContent[2]),dataOutputStream,requestContent[1]);
+        MQTTBroker.getTopics().get(requestContent[2]).dataOutputStream = dataOutputStream;
+        new MQTTSubscriber(topics.get(requestContent[2]),requestContent[1]);
         dataOutputStream.writeUTF("done subscribe");
     }
 
@@ -114,7 +114,7 @@ public class DeviceRequestHandler extends Thread {
             MQTTTopic topic = new MQTTTopic();
             topics.put(requestContent[1],topic);
         }
-        topics.get(requestContent[1]).updateState(requestContent[2]);
+        topics.get(requestContent[1]).updateState(requestContent[2],dataOutputStream);
     }
 
 }
