@@ -24,8 +24,7 @@ public class DeviceRequestHandler extends Thread {
     @Override
     public void run()
     {
-        String deviceRequest;
-        String serverResponse;
+        String deviceRequest=null;
         while (true)
         {
             try {
@@ -34,7 +33,15 @@ public class DeviceRequestHandler extends Thread {
                 dataOutputStream.writeUTF("Connection successful");
 
                 // receive the request from device
-                deviceRequest = dataInputStream.readUTF();
+                try{
+                    deviceRequest = dataInputStream.readUTF();
+                }catch (Exception e)
+                {
+                    System.out.println("Connection Closed");
+                    this.deviceSocket.close();
+                    return;
+                }
+
                     System.out.println(deviceRequest);
                     requestContent = split(deviceRequest);
                     if (requestContent[0].equalsIgnoreCase("Exit")) {

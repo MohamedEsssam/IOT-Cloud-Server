@@ -37,16 +37,13 @@ public class PeerDiscovery extends Thread{
     private void ReceiveUDP(DatagramSocket socket) throws SocketException, UnknownHostException {
         byte[] buf = new byte[512];
         DatagramPacket packet = new DatagramPacket(buf, buf.length);
-        System.out.println("Waiting for data");
         try {
             socket.receive(packet);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println(packet.getAddress());
-        System.out.println(packet.getPort());
         System.out.println("Data received");
-        //SendUDPPacket(packet.getAddress().getHostAddress(),packet.getPort(),datagramSocket.getInetAddress().getHostAddress());
+        SendUDPPacket(packet.getAddress().getHostAddress(),packet.getPort(),datagramSocket.getInetAddress().getHostAddress());
     }
 
     private void SendUDPPacket(String IP, int port, String message) throws UnknownHostException, SocketException {
