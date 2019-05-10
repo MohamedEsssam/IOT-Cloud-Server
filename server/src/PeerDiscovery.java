@@ -42,7 +42,7 @@ public class PeerDiscovery extends Thread {
             e.printStackTrace();
         }
         System.out.println("Data received");
-        SendUDPPacket(packet.getAddress().getHostAddress(), packet.getPort(), "");
+        SendUDPPacket(packet.getAddress().getHostAddress(), packet.getPort(), "I Am Server");
     }
 
     private void SendUDPPacket(String IP, int port, String message) throws UnknownHostException, SocketException {

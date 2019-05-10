@@ -1,9 +1,8 @@
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
+
 
 public class DeviceRequestHandler extends Thread {
 
@@ -11,10 +10,10 @@ public class DeviceRequestHandler extends Thread {
     private final DataOutputStream dataOutputStream;
     private final Socket deviceSocket;
     private ArrayList<MQTTSubscriber> socketSubscribers = new ArrayList<MQTTSubscriber>();
-
     private String[] requestContent;
+    StringBuilder sb = new StringBuilder();
     HashMap<String, MQTTTopic> topics = MQTTBroker.getTopics();
-
+    byte[] reader = new byte[1024];
 
     public DeviceRequestHandler(Socket deviceSocket, DataInputStream dataInputStream, DataOutputStream dataOutputStream) {
         this.deviceSocket = deviceSocket;
@@ -25,31 +24,47 @@ public class DeviceRequestHandler extends Thread {
     @Override
     public void run() {
         String deviceRequest = null;
+        try {
+            dataOutputStream.writeUTF("Connection successful");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         while (true) {
             try {
-                System.out.print("Connection success with socket : " + deviceSocket.getPort() + "\n");
+                //System.out.print("Connection success with socket : " + deviceSocket.getPort() + "\n");
                 // Ask user what he wants
-                dataOutputStream.writeUTF("Connection successful");
 
                 // receive the request from device
                 try {
-                    deviceRequest = dataInputStream.readUTF();
+                    //deviceRequest = dataInputStream.readUTF();
+                    dataInputStream.read(reader);
+                    // for each byte in the buffer
+                    for (byte b:reader) {
+                        // convert byte into character
+                        char c = (char)b;
+                        if(b==63 || b==0)
+                            break;
+                        // print the character
+                        //deviceRequest += c;
+                        sb.append(c);
+                    }
                 } catch (Exception e) {
                     removeSubscribers();
                     System.out.println("Connection Closed");
                     this.deviceSocket.close();
                     return;
                 }
-
+                deviceRequest = sb.toString();
+                sb.setLength(0);
                 System.out.println(deviceRequest);
                 requestContent = split(deviceRequest);
-                if (requestContent[0].equalsIgnoreCase("Exit")) {
+                if (requestContent[0].equals("Exit")) {
                     System.out.println("Client " + this.deviceSocket + " sends exit...");
                     System.out.println("Closing this connection.");
                     removeSubscribers();
                     this.deviceSocket.close();
                     System.out.println("Connection closed");
-                    break;
+                    return;
                 }
 
                 switch (requestContent[0]) {
@@ -67,7 +82,7 @@ public class DeviceRequestHandler extends Thread {
                     case "publish":
                         System.out.println("Publish request");
                         publish();
-                        dataOutputStream.writeUTF("done publish");
+                        //dataOutputStream.writeUTF("done publish");
                         break;
 
                     //if the request isn't subscribe nor publish, send invalid request
@@ -107,7 +122,7 @@ public class DeviceRequestHandler extends Thread {
         //In case a publisher published data that has no subscribers and closed socket,
         // and a subscribe subscribed to the topic and needs data to be sent to it
         socketSubscribers.add(new MQTTSubscriber(topics.get(requestContent[2]), dataOutputStream, requestContent[1]));
-        dataOutputStream.writeUTF("done subscribe");
+        //dataOutputStream.writeUTF("done subscribe");
     }
 
     private void publish() throws IOException {
