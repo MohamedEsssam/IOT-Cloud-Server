@@ -1,9 +1,7 @@
-import java.io.IOException;
-import java.net.Socket;
 
 public class Main {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         try {
             Thread t1 = MQTTBroker.getInstance();
             Thread t2 = PeerDiscovery.getInstance();

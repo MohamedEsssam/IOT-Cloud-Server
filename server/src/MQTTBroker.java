@@ -1,5 +1,3 @@
-import com.sun.net.httpserver.HttpExchange;
-
 import java.io.*;
 import java.net.*;
 import java.util.HashMap;
@@ -13,7 +11,8 @@ public class MQTTBroker extends Thread {
     private static HashMap<String, MQTTTopic> topics = new HashMap<>();
     private ServerSocket serverWelcomingSocket;
 
-    private MQTTBroker() {}
+    private MQTTBroker() {
+    }
 
     public static MQTTBroker getInstance() {
         return mqttBrokerInstance;
@@ -33,8 +32,7 @@ public class MQTTBroker extends Thread {
         }
 
         // running infinite loop for getting client request
-        while (true)
-        {
+        while (true) {
             // socket object to receive incoming client requests
             Socket acceptedSocket = null;
             try {
@@ -63,24 +61,9 @@ public class MQTTBroker extends Thread {
 
             // create a new thread object
             Thread t = null;
-            try {
-                t = new DeviceRequestHandler(acceptedSocket, dataInputStream, dataOutputStream);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
+            t = new DeviceRequestHandler(acceptedSocket, dataInputStream, dataOutputStream);
             // Invoking the start() method
             t.start();
-    }
-    }
-
-    private MQTTTopic getTopic(String topicName) {
-        return topics.get(topicName);
-    }
-
-    //create topic method
-    private void createTopic(String topicName) {
-        MQTTTopic newTopic = new MQTTTopic();
-        topics.put(topicName, newTopic);
+        }
     }
 }

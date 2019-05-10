@@ -5,14 +5,17 @@ public class MQTTSubscriber {
 
     private MQTTTopic mqttTopic;
     public String DeviceName;
-    public MQTTSubscriber(MQTTTopic topic,String DeviceName) throws IOException {
+    private DataOutputStream dataOutputStream;
+
+    public MQTTSubscriber(MQTTTopic topic, DataOutputStream dataOutputStream, String DeviceName) throws IOException {
         this.mqttTopic = topic;
         this.DeviceName = DeviceName;
+        this.dataOutputStream = dataOutputStream;
         this.mqttTopic.attach(this);
 
     }
 
-    public void update(DataOutputStream dataOutputStream) throws IOException {
+    public void update() throws IOException {
         System.out.println("Sending Data");
         dataOutputStream.writeUTF("publish " + DeviceName + " " + mqttTopic.getState());
     }

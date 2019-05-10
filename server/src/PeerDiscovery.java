@@ -1,8 +1,7 @@
 import java.io.IOException;
 import java.net.*;
-import java.util.HashMap;
 
-public class PeerDiscovery extends Thread{
+public class PeerDiscovery extends Thread {
     private static final PeerDiscovery peerDiscoveryInstance = new PeerDiscovery();
     private DatagramSocket datagramSocket;
 
@@ -14,7 +13,8 @@ public class PeerDiscovery extends Thread{
         }
     }
 
-    private PeerDiscovery() {}
+    private PeerDiscovery() {
+    }
 
     public static PeerDiscovery getInstance() {
         return peerDiscoveryInstance;
@@ -22,8 +22,7 @@ public class PeerDiscovery extends Thread{
 
     @Override
     public void run() {
-        while (true)
-        {
+        while (true) {
             try {
                 ReceiveUDP(datagramSocket);
             } catch (SocketException e) {
@@ -43,7 +42,7 @@ public class PeerDiscovery extends Thread{
             e.printStackTrace();
         }
         System.out.println("Data received");
-        SendUDPPacket(packet.getAddress().getHostAddress(),packet.getPort(),"");
+        SendUDPPacket(packet.getAddress().getHostAddress(), packet.getPort(), "");
     }
 
     private void SendUDPPacket(String IP, int port, String message) throws UnknownHostException, SocketException {
