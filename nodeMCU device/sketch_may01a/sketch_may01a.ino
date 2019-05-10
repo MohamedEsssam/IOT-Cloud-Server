@@ -25,12 +25,13 @@ int ledpin = 5; // D1
 int button = 4; //D2
 int i=0;
 String reply;
+String message = "subscribe led button";
 
 WiFiClient client;
 WiFiUDP Udp;
 
 //broadcast ip
-IPAddress remoteIP(192,168,0,119);
+IPAddress remoteIP(192,168,0,115);
 char replyPacket[] = "publish";
 
 
@@ -79,30 +80,24 @@ void setup()
     }
     Serial.printf("UDP packet contents: %s\n", incomingPacket);   
   }
-}
-
-void loop() 
-{      
-   if (digitalRead(button) == 1){
-  
-
-     //recieve udp packet and start tcp   
-    if(startTcpFlag){
-      if(!Flag){
+  if(startTcpFlag){
       //TCP connection
     if (client.connect(remoteIP, portTCP)) {
-      Flag=1;
-      client.write("subscribe led button?");
-    // wait for data to be available
-  unsigned long timeout = millis();
-  while (client.available() == 0) {
-    if (millis() - timeout > 5000) {
-      Serial.println(">>> Client Timeout !");
-      client.stop();
-      delay(60000);
-      return;
+      //client.write(message.length());
+      client.write("subscribe led button");
+      Flag =1;
     }
-  }
+}
+}
+void loop() {
+  static int count = 0;
+  static int ledFlag=0;      
+  if(Flag){
+    Serial.println(count);
+    delay(1000);
+   if (digitalRead(button) == 1){
+     //recieve udp packet and start tcp   
+  
 
   // Read all the lines of the reply from server and print them to Serial
   Serial.println("receiving from remote server");
@@ -126,16 +121,24 @@ Serial.println();
 char charBuf[100];
 reply.toCharArray(charBuf,100);
 Serial.println(subStr(charBuf," ",3));
-if(strcmp(subStr(charBuf," ",3), "1")==0){
+if(strcmp(subStr(charBuf," ",3), "1")==0&&ledFlag%2==0){
+          ledFlag =1;
            Serial.println("LED On");
-           digitalWrite(ledpin, HIGH); 
+           digitalWrite(ledpin,HIGH); 
            delay(200);
         }
-        else{
+        else if(strcmp(subStr(charBuf," ",3), "1")==0&&ledFlag%2==1){
+          ledFlag=0;
           Serial.println("LED Off");
            digitalWrite(ledpin, LOW); 
            delay(200);
           }
+          else{
+            Serial.println("LED Off");
+           digitalWrite(ledpin, LOW); 
+           delay(200);
+          
+            }
 //while (client.available()){
 //     char TCPincomingPacket = client.read();
 //     Serial.println(TCPincomingPacket);
@@ -161,15 +164,14 @@ if(strcmp(subStr(charBuf," ",3), "1")==0){
 delay(5000);    
        
    }
+  }
    else{
     Serial.println("connection failed");
     delay(5000);
     return;
     }    
-  }
-    }
    }
-  }
+  
 
 
 // Function to return a substring defined by a delimiter at an index
