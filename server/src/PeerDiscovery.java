@@ -7,7 +7,7 @@ public class PeerDiscovery extends Thread {
 
     {
         try {
-            datagramSocket = new DatagramSocket(5555);
+            datagramSocket = new DatagramSocket(5656);
         } catch (SocketException e) {
             e.printStackTrace();
         }

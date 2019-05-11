@@ -26,7 +26,7 @@ public class MQTTBroker extends Thread {
     public void run() {
         // server welcoming socket listening on port 5678 with ip address of the machine
         try {
-            serverWelcomingSocket = new ServerSocket(5678);
+            serverWelcomingSocket = new ServerSocket(6789);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -61,7 +61,8 @@ public class MQTTBroker extends Thread {
 
             // create a new thread object
             Thread t = null;
-            t = new DeviceRequestHandler(acceptedSocket, dataInputStream, dataOutputStream);
+            t = new  AndroidDeviceRequestHandler(acceptedSocket, dataInputStream, dataOutputStream);
+            //t = new DeviceRequestHandler(acceptedSocket, dataInputStream, dataOutputStream);
             // Invoking the start() method
             t.start();
         }
